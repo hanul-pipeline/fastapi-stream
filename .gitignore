@@ -1,0 +1,10 @@
+# ini
+**/*.ini
+
+# datas & logs
+**/*.csv
+**/*.parquet
+**/*.log
+
+# pycache
+**/__pycache__/**
