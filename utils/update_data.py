@@ -10,7 +10,7 @@ from modules import *
 
 
 # confirmed: devided
-def update_mysql(data_received:dict):
+def update_mysql_measurement(data_received:dict):
     # open connector
     conn = db_conn()
     cursor = conn.cursor()
@@ -48,8 +48,40 @@ def update_mysql(data_received:dict):
     conn.close()
 
 
+def update_mysql_alert(data_received:dict):
+    # open connector
+    conn = db_conn()
+    cursor = conn.cursor()
+    
+    # {'date': '2023-10-28', 'time': '16:15:44', 'location': {'id': 10, 'name': '제1 연구실'}, 
+    # 'sensor': {'id': 300, 'name': 'MQ-4', 'type': '가연성 가스 센서'}, 
+    # 'measurement': [{'value_type': 'CH4', 'value': 0.2, 'unit': 'ppm', 'cnt': 1, 'percentage': 0}], 'network': {'name': "can't find", 'dB': 0}}
+
+    # get datas
+    date = data_received["date"]
+    time = data_received["time"]
+    location_id = data_received["location"]["id"]
+    sensor_id = data_received["sensor"]["id"]
+    type_id = data_received["type"]["id"]
+    grade = data_received["grade"]
+
+    # update table
+    QUERY = f"INSERT INTO alert "
+    QUERY += """
+        (date, time, location_id, sensor_id, type_id, grade)
+        VALUES
+        (%s, %s, %s, %s, %s, %s)
+    """
+    VALUES = (date, time, location_id, sensor_id, type_id, grade)
+    cursor.execute(QUERY, VALUES)
+    conn.commit()
+
+    # close connector
+    conn.close()
+
+
 # confirmed: devided
-def update_csv(data_received:dict, date, location_id):
+def update_csv(data_received:dict, date, location_id, table_name):
     folder_dir = f"{data_dir}/csv/location_id={location_id}/date={date}"
     try:
         os.makedirs(folder_dir)
@@ -57,7 +89,7 @@ def update_csv(data_received:dict, date, location_id):
         print("Folder Exists")
 
     # def file dir
-    file_dir = f"{folder_dir}/measurements.csv"
+    file_dir = f"{folder_dir}/{table_name}.csv"
 
     # return dict to rows
     flat_data = flatten_dict(data_received)
@@ -80,8 +112,16 @@ def update_csv(data_received:dict, date, location_id):
 def update_data(data_received:dict, location_id:int):
     date = data_received['date']
     print(date)
-    update_mysql(data_received)
-    update_csv(data_received, date, location_id)
+    update_mysql_measurement(data_received)
+    update_csv(data_received, date, location_id, 'measurement')
+
+
+
+def update_alert(data_received:dict, location_id:int):
+    date = data_received['date']
+    print(date)
+    update_mysql_alert(data_received)
+    update_csv(data_received, date, location_id, 'alert')
 
 
 # TEST
