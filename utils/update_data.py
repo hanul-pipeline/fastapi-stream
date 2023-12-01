@@ -108,7 +108,7 @@ def update_data(data_received:dict, location_id:int):
     end_time = time()
     
     logging.info(f"Time Spent(second): {end_time - start_time}")
-
+    logging.getLogger().removeHandler(file_handler)
 
 # TEST
 if __name__ == "__main__":
