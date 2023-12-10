@@ -8,6 +8,8 @@ log_dir = os.path.join(current_dir, '../log')
 sys.path.append(lib_dir)
 
 from modules import *
+from log_libs import *
+from os_libs import *
 
 
 # confirmed: devided
@@ -79,8 +81,6 @@ def update_csv(data_received:dict, date, location_id, table_name):
 # confirmed: devided
 def update_data(data_received:dict, location_id:int):
     import logging
-    # from logging.handlers import RotatingFileHandler
-    from logging.handlers import TimedRotatingFileHandler
     from datetime import datetime, timedelta
     from time import time
     
@@ -93,22 +93,19 @@ def update_data(data_received:dict, location_id:int):
 
     logging.Formatter.converter = custom_converter
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
-    file_handler = TimedRotatingFileHandler(
-        f"{log_dir}/update_data/location_{location_id}/time_{date}.log", 
-        when="midnight", 
-        interval=1, 
-        backupCount=5, 
-        encoding="utf-8")
-    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-    logging.getLogger().addHandler(file_handler)
+    
+    log_file_dir = f"{log_dir}/time_spend/location_{location_id}/{date}.log"
+    check_mkdirs(dir=log_file_dir)
+    handler = file_handler(log_dir = log_file_dir)
+    logging.getLogger().addHandler(handler)
     
     update_mysql_measurement(data_received)
     update_csv(data_received, date, location_id, 'measurement')
     
     end_time = time()
     
-    logging.info(f"Time Spent(second): {end_time - start_time}")
-    logging.getLogger().removeHandler(file_handler)
+    logging.info(f"{end_time - start_time:.3f} sec")
+    logging.getLogger().removeHandler(handler)
 
 # TEST
 if __name__ == "__main__":
