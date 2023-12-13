@@ -90,22 +90,19 @@ def update_data(data_received:dict, location_id:int):
     def custom_converter(self, timestamp):
         current_time = datetime.fromtimestamp(timestamp) + timedelta(hours=9)
         return current_time.timetuple()
-
-    logging.Formatter.converter = custom_converter
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
     
-    log_file_dir = f"{log_dir}/time_spend/location_{location_id}/{date}.log"
-    check_mkdirs(dir=log_file_dir)
-    handler = file_handler(log_dir = log_file_dir)
-    logging.getLogger().addHandler(handler)
+    log_file_dir = f"{log_dir}/time_spend/location_{location_id}"
+    check_mkdirs(dir=log_file_dir) # Module
+    logger = setup_logger(name:str, level=None, log_dir=None) # Module
     
-    update_mysql_measurement(data_received)
-    update_csv(data_received, date, location_id, 'measurement')
+    update_mysql_measurement(data_received) # Module
+    update_csv(data_received, date, location_id, 'measurement') # Module
     
     end_time = time()
     
-    logging.info(f"{end_time - start_time:.3f} sec")
-    logging.getLogger().removeHandler(handler)
+    logging.info(f"{end_time - start_time:.3f} sec") # Mudule
+    remove_logger(logger) # Module
+    
 
 # TEST
 if __name__ == "__main__":
